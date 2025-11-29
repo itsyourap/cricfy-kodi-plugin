@@ -48,46 +48,42 @@ def list_channels(m3u_url):
   """
   Fetches the M3U from the specific provider and lists channels.
   """
+  # Fetch M3U content
   try:
-    # Fetch M3U content with custom headers
     content = fetch_url(m3u_url, timeout=15)
-    if not content:
-      xbmcgui.Dialog().notification(
-        'Error', 'Failed to fetch playlist content', xbmcgui.NOTIFICATION_ERROR)
-      xbmcplugin.endOfDirectory(ADDON_HANDLE)
-      return
-
-    # Parse M3U
-    channels = parse_m3u(content)
-
-    for ch in channels:
-      li = xbmcgui.ListItem(label=ch.title)
-      li.setArt({'thumb': ch.tvg_logo, 'icon': ch.tvg_logo})
-      li.setInfo('video', {'title': ch.title, 'genre': ch.group_title})
-      li.setProperty('IsPlayable', 'true')
-
-      # Construct URL for playback mode
-      # We encode the channel data into the URL so we don't have to re-parse on playback
-      # TODO: Use a cache to eliminate stale URLs (if item was added to favorites, etc)
-      params = {
-        'mode': 'play',
-        'url': ch.url,
-        'ua': ch.user_agent,
-        'cookie': ch.cookie,
-        'referer': ch.referer,
-        'lic': ch.license_string,
-        'headers': ch.headers
-      }
-
-      url = build_url(params)
-      xbmcplugin.addDirectoryItem(
-        handle=ADDON_HANDLE, url=url, listitem=li, isFolder=False)
-    xbmcplugin.endOfDirectory(ADDON_HANDLE)
-
   except Exception as e:
-    log_error("main", f"Error listing channels: {e}")
-    xbmcgui.Dialog().notification('Error', str(e), xbmcgui.NOTIFICATION_ERROR)
+    log_error("main", f"Error fetching M3U URL ({m3u_url}) content: {e}")
+    xbmcgui.Dialog().notification(
+        'Error', 'Failed to fetch playlist content', xbmcgui.NOTIFICATION_ERROR)
     xbmcplugin.endOfDirectory(ADDON_HANDLE)
+    return
+
+  # Parse M3U
+  channels = parse_m3u(content)
+
+  for ch in channels:
+    li = xbmcgui.ListItem(label=ch.title)
+    li.setArt({'thumb': ch.tvg_logo, 'icon': ch.tvg_logo})
+    li.setInfo('video', {'title': ch.title, 'genre': ch.group_title})
+    li.setProperty('IsPlayable', 'true')
+
+    # Construct URL for playback mode
+    # We encode the channel data into the URL so we don't have to re-parse on playback
+    # TODO: Use a cache to eliminate stale URLs (if item was added to favorites, etc)
+    params = {
+      'mode': 'play',
+      'url': ch.url,
+      'ua': ch.user_agent,
+      'cookie': ch.cookie,
+      'referer': ch.referer,
+      'lic': ch.license_string,
+      'headers': ch.headers
+    }
+
+    url = build_url(params)
+    xbmcplugin.addDirectoryItem(
+      handle=ADDON_HANDLE, url=url, listitem=li, isFolder=False)
+  xbmcplugin.endOfDirectory(ADDON_HANDLE)
 
 
 def play_video(url, user_agent, cookie, referer, license_string, headers):
