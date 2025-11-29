@@ -16,11 +16,11 @@ SECRET = open(SECRET_FILE_PATH, "r").read().strip()
 def decrypt_data(encrypted_base64: str) -> str:
   try:
     clean_base64 = (
-        encrypted_base64.strip()
-        .replace("\n", "")
-        .replace("\r", "")
-        .replace(" ", "")
-        .replace("\t", "")
+      encrypted_base64.strip()
+      .replace("\n", "")
+      .replace("\r", "")
+      .replace(" ", "")
+      .replace("\t", "")
     )
 
     # 1. Extract IV — reverse first 16 chars
