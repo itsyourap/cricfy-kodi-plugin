@@ -58,6 +58,12 @@ If you'd like to contribute improvements or fixes, fork the repository and submi
 You can use, study, share and modify it at your will. They can be redistributed and/or modified under the terms of the
 [GNU General Public License](https://www.gnu.org/licenses/gpl.html) version 3 or later published by the Free Software Foundation.
 
+## Support
+
+[![Buy Me a Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://buymeacoffee.com/itsyourap)
+
+If you find this project helpful and would like to support its development, consider buying me a coffee! Your support helps keep the project alive and allows me to dedicate more time to improvements and new features. Thank you for your generosity!
+
 ## Disclaimer
 
 This is an unofficial plugin. Use at your own risk. The plugin is not affiliated with Cricfy or Kodi.
