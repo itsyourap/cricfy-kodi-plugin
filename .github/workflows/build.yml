@@ -70,4 +70,39 @@ jobs:
           name: Release ${{ github.ref_name }}
           files: dist/**
           make_latest: true
+          prerelease: false
+          draft: false
+          generate_release_notes: true
+
+
+  pre-release:
+    needs: build
+    if:  ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download built artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: plugin.video.cricfy
+          path: dist
+
+      - name: Zip the folder
+        run: |
+          cd dist
+          zip -r plugin.video.cricfy-${{ github.ref_name }}.zip plugin.video.cricfy
+          rm -rf plugin.video.cricfy
+
+      - name: Generate tag
+        id: gen_tag
+        run: |
+          echo "tag=${{ github.ref_name }}.$(date +'%Y.%m.%d.%H.%M')" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub release and upload asset(s)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.gen_tag.outputs.tag }}
+          files: dist/**
+          prerelease: true
+          draft: false
+          generate_release_notes: true
 
