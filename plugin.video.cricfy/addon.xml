@@ -5,10 +5,12 @@
   provider-name="itsyourap">
   <requires>
     <import addon="xbmc.python" version="3.0.0" />
+    <import addon="script.common.plugin.cache" version="3.0.0" />
     <import addon="script.module.requests" />
     <import addon="script.module.pycryptodome" />
     <import addon="inputstream.adaptive" />
   </requires>
+  <extension point="xbmc.service" library="service.py" />
   <extension point="xbmc.python.pluginsource" library="main.py">
     <provides>video</provides>
   </extension>

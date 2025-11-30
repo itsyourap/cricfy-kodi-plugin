@@ -4,10 +4,9 @@ import sys
 from urllib.parse import urlencode, parse_qsl
 import xbmcgui
 import xbmcplugin
-from lib.providers import get_providers
+from lib.providers import get_providers, get_channels
+from lib.req import license_headers
 from lib.logger import log_error
-from lib.req import fetch_url, license_headers
-from lib.m3u_parser import parse_m3u
 
 # Base URL for the addon
 BASE_URL = sys.argv[0]
@@ -30,7 +29,7 @@ def list_providers():
       'image', 'https://www.iconexperience.com/_img/v_collection_png/256x256/shadow/unknown.png')
     cat_link = prov.get('catLink', '')
 
-    if not cat_link:
+    if not cat_link or not cat_link.startswith('http'):
       continue
 
     # Create a folder item for this provider
@@ -44,22 +43,30 @@ def list_providers():
   xbmcplugin.endOfDirectory(ADDON_HANDLE)
 
 
-def list_channels(m3u_url):
+def list_channels(provider_url):
   """
   Fetches the M3U from the specific provider and lists channels.
   """
+  if not provider_url or not provider_url.startswith('http'):
+    xbmcgui.Dialog().notification(
+        'Error', 'Invalid provider URL', xbmcgui.NOTIFICATION_ERROR)
+    xbmcplugin.endOfDirectory(ADDON_HANDLE)
+    return
+
   # Fetch M3U content
   try:
-    content = fetch_url(m3u_url, timeout=15)
+    channels = get_channels(provider_url=provider_url)
+    if not channels:
+      xbmcgui.Dialog().notification(
+          'Error', 'No channels found', xbmcgui.NOTIFICATION_ERROR)
+      xbmcplugin.endOfDirectory(ADDON_HANDLE)
+      return
   except Exception as e:
-    log_error("main", f"Error fetching M3U URL ({m3u_url}) content: {e}")
+    log_error("main", f"Error fetching channels: {e}")
     xbmcgui.Dialog().notification(
         'Error', 'Failed to fetch playlist content', xbmcgui.NOTIFICATION_ERROR)
     xbmcplugin.endOfDirectory(ADDON_HANDLE)
     return
-
-  # Parse M3U
-  channels = parse_m3u(content)
 
   for ch in channels:
     li = xbmcgui.ListItem(label=ch.title)

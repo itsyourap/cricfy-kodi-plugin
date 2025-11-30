@@ -15,10 +15,26 @@ class PlaylistItem:
     self.headers = {}
     self.is_drm = False
 
+  def to_json(self) -> str:
+    """Returns the JSON string representation of this object"""
+    return json.dumps(self.__dict__)
+
+  def to_dict(self) -> dict:
+    """Returns the dictionary representation of this object"""
+    return self.__dict__
+
+  @staticmethod
+  def from_dict(data):
+    """Helper to create an object back from a dictionary"""
+    item = PlaylistItem()
+    # Update item with data, ignoring keys that don't exist in the class
+    item.__dict__.update(data)
+    return item
+
 
 def parse_m3u(content: str):
   lines = content.splitlines()
-  items = []
+  items: list[PlaylistItem] = []
   current_item = None
 
   # Buffers for properties appearing before the URL line
