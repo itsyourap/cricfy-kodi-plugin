@@ -1,6 +1,6 @@
 [project]
 name = "cricfy-kodi-plugin"
-version = "1.0.0"
+version = "1.1.0"
 description = "Cricfy Plugin for Kodi"
 readme = "README.md"
 requires-python = ">=3.12"
