@@ -1,4 +1,3 @@
-import ast
 import re
 import sys
 from urllib.parse import urlencode, parse_qsl
@@ -76,15 +75,10 @@ def list_channels(provider_url):
 
     # Construct URL for playback mode
     # We encode the channel data into the URL so we don't have to re-parse on playback
-    # TODO: Use a cache to eliminate stale URLs (if item was added to favorites, etc)
     params = {
       'mode': 'play',
-      'url': ch.url,
-      'ua': ch.user_agent,
-      'cookie': ch.cookie,
-      'referer': ch.referer,
-      'lic': ch.license_string,
-      'headers': ch.headers
+      'provider_url': provider_url,
+      'channel_title': ch.title,
     }
 
     url = build_url(params)
@@ -93,17 +87,34 @@ def list_channels(provider_url):
   xbmcplugin.endOfDirectory(ADDON_HANDLE)
 
 
-def play_video(url, user_agent, cookie, referer, license_string, headers):
+def play_video(provider_url, channel_title):
   """
   Resolves the URL and sets up Inputstream Adaptive for DRM or HLS.
   """
+  try:
+    channels = get_channels(provider_url=provider_url)
+    channel = next((ch for ch in channels if ch.title == channel_title), None)
+    if not channel:
+      raise ValueError("Channel not found")
+
+    url = channel.url
+    user_agent = channel.user_agent
+    cookie = channel.cookie
+    referer = channel.referer
+    license_string = channel.license_string
+    headers = channel.headers
+  except Exception as e:
+    log_error("main", f"Error resolving channel: {e}")
+    xbmcgui.Dialog().notification(
+        'Error', 'Failed to resolve channel URL', xbmcgui.NOTIFICATION_ERROR)
+    return
+
   li = xbmcgui.ListItem(path=url)
 
   # Construct standard headers string for Kodi
   stream_headers = []
   if headers:
-    parsed_headers = ast.literal_eval(headers)
-    for k, v in parsed_headers.items():
+    for k, v in headers.items():
       stream_headers.append(f'{k}={v}')
 
   if user_agent:
@@ -150,12 +161,8 @@ def router(param_string):
     list_channels(params.get('url'))
   elif mode == 'play':
     play_video(
-      params.get('url'),
-      params.get('ua'),
-      params.get('cookie'),
-      params.get('referer'),
-      params.get('lic'),
-      params.get('headers')
+      params.get('provider_url'),
+      params.get('channel_title')
     )
   else:
     xbmcgui.Dialog().notification(
