@@ -7,8 +7,8 @@ from Cryptodome.Cipher import AES
 
 SECRET1_FILE_PATH = ADDON_PATH / "resources" / "secret1.txt"
 SECRET2_FILE_PATH = ADDON_PATH / "resources" / "secret2.txt"
-SECRET1 = open(SECRET1_FILE_PATH, "r").read().strip()
-SECRET2 = open(SECRET2_FILE_PATH, "r").read().strip()
+SECRET1 = SECRET1_FILE_PATH.read_text(encoding="utf-8").strip()
+SECRET2 = SECRET2_FILE_PATH.read_text(encoding="utf-8").strip()
 
 
 @dataclass
@@ -30,10 +30,12 @@ def parse_key_info(secret: str) -> KeyInfo:
 
 
 def keys():
-  return {
-    "key1": parse_key_info(SECRET1),
-    "key2": parse_key_info(SECRET2),
-  }
+  keys = {}
+  if SECRET1:
+    keys["key1"] = parse_key_info(SECRET1)
+  if SECRET2:
+    keys["key2"] = parse_key_info(SECRET2)
+  return keys
 
 
 def decrypt_data(encrypted_base64: str) -> Optional[str]:
