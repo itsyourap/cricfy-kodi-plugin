@@ -1,13 +1,44 @@
 import base64
+from dataclasses import dataclass
+from typing import Optional
 from lib.logger import log_error
 from lib.config import ADDON_PATH
 from Cryptodome.Cipher import AES
 
-SECRET_FILE_PATH = ADDON_PATH / "resources" / "secret.txt"
-SECRET = open(SECRET_FILE_PATH, "r").read().strip()
+SECRET1_FILE_PATH = ADDON_PATH / "resources" / "secret1.txt"
+SECRET2_FILE_PATH = ADDON_PATH / "resources" / "secret2.txt"
+SECRET1 = SECRET1_FILE_PATH.read_text(encoding="utf-8").strip()
+SECRET2 = SECRET2_FILE_PATH.read_text(encoding="utf-8").strip()
 
 
-def decrypt_data(encrypted_base64: str) -> str:
+@dataclass
+class KeyInfo:
+  key: bytes
+  iv: bytes
+
+
+def hex_string_to_bytes(hex_str: str) -> bytes:
+  return bytes.fromhex(hex_str)
+
+
+def parse_key_info(secret: str) -> KeyInfo:
+  key_hex, iv_hex = secret.split(":")
+  return KeyInfo(
+    key=hex_string_to_bytes(key_hex),
+    iv=hex_string_to_bytes(iv_hex),
+  )
+
+
+def keys():
+  keys = {}
+  if SECRET1:
+    keys["key1"] = parse_key_info(SECRET1)
+  if SECRET2:
+    keys["key2"] = parse_key_info(SECRET2)
+  return keys
+
+
+def decrypt_data(encrypted_base64: str) -> Optional[str]:
   try:
     clean_base64 = (
       encrypted_base64.strip()
@@ -17,29 +48,37 @@ def decrypt_data(encrypted_base64: str) -> str:
       .replace("\t", "")
     )
 
-    # 1. Extract IV — reverse first 16 chars
-    iv_raw = SECRET[:16][::-1]
-    iv = iv_raw.encode("utf-8")
+    ciphertext = base64.b64decode(clean_base64)
 
-    # 2. Extract AES key — reverse substring from 11 to len - 1
-    key_raw = SECRET[11:-1][::-1]
-    key = key_raw.encode("iso-8859-1")
+    for key_info in keys().values():
+      result = try_decrypt(ciphertext, key_info)
+      if result is not None:
+        return result
 
-    # 3. Decode base64
-    decoded = base64.b64decode(clean_base64)
-
-    # 4. AES decrypt (CBC mode, PKCS5 padding)
-    cipher = AES.new(key, AES.MODE_CBC, iv)
-    decrypted = cipher.decrypt(decoded)
-
-    # 5. Handle padding
-    pad_len = decrypted[-1]
-    if pad_len <= 0 or pad_len > 16:
-      # invalid padding
-      return decrypted.decode("utf-8", errors="ignore").rstrip("\x00")
-    plaintext = decrypted[:-pad_len]
-    return plaintext.decode("utf-8", errors="ignore")
-
+    log_error("crypto_utils", "Decryption failed with all keys.")
+    return None
   except Exception as e:
     log_error("crypto_utils", f"Decryption failed: {e}")
-    return ""
+    return None
+
+
+def try_decrypt(ciphertext: bytes, key_info: KeyInfo) -> Optional[str]:
+  try:
+    cipher = AES.new(key_info.key, AES.MODE_CBC, key_info.iv)
+    decrypted = cipher.decrypt(ciphertext)
+
+    # PKCS5/7 unpadding
+    pad_len = decrypted[-1]
+    decrypted = decrypted[:-pad_len]
+
+    text = decrypted.decode("utf-8")
+
+    if (
+      text.startswith("{")
+      or text.startswith("[")
+      or "http" in text.lower()
+    ):
+      return text
+    return None
+  except Exception:
+    return None

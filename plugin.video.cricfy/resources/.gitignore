@@ -1,4 +1,2 @@
-secret.txt
-fallback_providers.json
-cricfy_url.txt
 cricfy_properties.json
+secret*.txt
