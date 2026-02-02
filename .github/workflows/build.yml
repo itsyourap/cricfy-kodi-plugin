@@ -38,7 +38,8 @@ jobs:
 
       - name: Run main.py
         env:
-          CRICFY_SECRET: ${{ secrets.CRICFY_SECRET }}
+          CRICFY_SECRET1: ${{ secrets.CRICFY_SECRET1 }}
+          CRICFY_SECRET2: ${{ secrets.CRICFY_SECRET2 }}
           CRICFY_FIREBASE_API_KEY: ${{ secrets.CRICFY_FIREBASE_API_KEY }}
           CRICFY_FIREBASE_APP_ID: ${{ secrets.CRICFY_FIREBASE_APP_ID }}
           CRICFY_PACKAGE_NAME: ${{ secrets.CRICFY_PACKAGE_NAME }}
@@ -109,4 +110,3 @@ jobs:
           prerelease: true
           draft: false
           generate_release_notes: true
-
