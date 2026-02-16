@@ -3,7 +3,7 @@ import json
 import hashlib
 from lib.config import cache
 from lib.logger import log_error, log_info
-from lib.crypto_utils import decrypt_data
+from lib.crypto_utils import decrypt_content, decrypt_data
 from lib.req import fetch_url
 from lib.m3u_parser import PlaylistItem, parse_m3u
 from lib.remote_config import get_provider_api_url
@@ -77,6 +77,7 @@ def get_channels(provider_url: str):
 
   try:
     content = fetch_url(provider_url, timeout=15)
+    content = decrypt_content(content)
     channels = parse_m3u(content)
     cache.set(channel_cache_key, json.dumps({
       'channels': json.dumps(channels, default=lambda o: o.to_dict()),
