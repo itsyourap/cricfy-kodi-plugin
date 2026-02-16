@@ -41,9 +41,11 @@ Notes:
 
 ## Credits
 
-Some portions of the code were inspired by the following repository:
+Major portions of the code were ported from the following repository:
 
 <https://github.com/NivinCNC/CNCVerse-Cloud-Stream-Extension/tree/master/CricifyProvider>
+
+Thanks a lot to [NivinCNC](https://github.com/NivinCNC) for their work on the original Cricfy provider extension for Cloudstream. This Kodi plugin is based on their implementation, adapted to work within the Kodi ecosystem.
 
 Please see that project for reference and additional context.
 
